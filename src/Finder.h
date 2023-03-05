@@ -5,7 +5,7 @@
 
 namespace DuplicateFinder
 {
-    using duplicates = std::unordered_map<
+    using Duplicates = std::unordered_map<
         std::filesystem::path,
         std::unordered_set<std::filesystem::path>>;
 
@@ -14,7 +14,7 @@ namespace DuplicateFinder
     public:
         explicit Finder(std::filesystem::path path);
 
-        duplicates Process();
+        Duplicates Process();
     private:
         std::filesystem::path path_;
     };
