@@ -40,7 +40,7 @@ namespace
     }
 }
 
-bool FileComparer::Compare(const FileInfo& lhs, const FileInfo& rhs)
+bool FileComparer::AreEqual(const FileInfo& lhs, const FileInfo& rhs)
 {
     if (lhs.size_ != rhs.size_)
     {

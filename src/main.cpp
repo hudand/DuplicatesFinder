@@ -1,38 +1,18 @@
 #include <filesystem>
 #include <iostream>
-#include <unordered_map>
+#include "Finder.h"
+
+using namespace DuplicateFinder;
+
+namespace fs = std::filesystem;
 
 int main()
 {
-    using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
+    const fs::path folder{ "c:/Work" };
+    constexpr std::size_t taskCount = 8;
 
-    std::unordered_map<std::filesystem::path, std::size_t> fileSizes;
+    Finder finder(folder, taskCount);
+    const auto duplicates = finder.Process();
 
-    for (const auto& dirEntry : recursive_directory_iterator("c:\\Work\\D3"))
-    {
-        if (dirEntry.is_regular_file())
-        {
-            std::cout << "file: " << dirEntry << ", size: " << dirEntry.file_size() << std::endl;
-        }
-        else
-        {
-            std::cout << "dir: " << dirEntry << std::endl;
-        }
-    }
-
-    for (const auto& dirEntry : recursive_directory_iterator("c:\\Work\\D3"))
-    {
-        if (dirEntry.is_regular_file())
-        {
-            std::cout << "file: " << dirEntry << ", size: " << dirEntry.file_size() << std::endl;
-        }
-        else
-        {
-            std::cout << "dir: " << dirEntry << std::endl;
-        }
-    }
-
-    std::string my_string;
-    std::vector<std::string> vect;
-    std::cout << sizeof vect << std::endl;
+    return EXIT_SUCCESS;
 }

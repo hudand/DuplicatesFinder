@@ -8,6 +8,6 @@ namespace DuplicateFinder
     class FileComparer final
     {
     public:
-        static bool Compare(const FileInfo& lhs, const FileInfo& rhs);
+        static bool AreEqual(const FileInfo& lhs, const FileInfo& rhs);
     };
 }
