@@ -8,7 +8,7 @@ namespace fs = std::filesystem;
 
 int main()
 {
-    const fs::path folder{ "c:/Work" };
+    const fs::path folder{ "c:\\Work\\D3" };
     constexpr std::size_t taskCount = 8;
 
     Finder finder(folder, taskCount);

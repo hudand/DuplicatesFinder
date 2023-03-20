@@ -12,6 +12,8 @@ namespace
 {
     using directory_iterator = fs::recursive_directory_iterator;
 
+    using Duplicate = std::pair<const fs::path, std::unordered_set<fs::path>>;
+
     constexpr auto Delay = std::chrono::milliseconds(10ms);
 
     std::vector<FileInfo> CreateFileList(const fs::path& folderPath)
@@ -34,6 +36,59 @@ namespace
         std::size_t number, std::size_t recordCount)
     {
         return std::make_pair(number / recordCount, number % recordCount);
+    }
+
+    bool TryMergeToRecordWithTheSameKey(
+        Duplicates& allDuplicates, Duplicate& duplicate)
+    {
+        auto iter = allDuplicates.find(duplicate.first);
+
+        if (iter == allDuplicates.end())
+        {
+            return false;
+        }
+
+        iter->second.merge(duplicate.second);
+
+        return true;
+    }
+
+    bool TryMergeToRecordWithKeyEqualedToOneOfValues(
+        Duplicates& allDuplicates, Duplicate& duplicate)
+    {
+        for (auto& rhsDuplicate : duplicate.second)
+        {
+            auto iter = allDuplicates.find(rhsDuplicate);
+
+            if (iter != allDuplicates.end())
+            {
+                iter->second.emplace(duplicate.first);
+                iter->second.merge(duplicate.second);
+                iter->second.erase(iter->first);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    void AddRecord(Duplicates& allDuplicates, Duplicate& duplicate)
+    {
+        allDuplicates.insert(std::move(duplicate));
+    }
+
+    void Merge(Duplicates& allDuplicates, Duplicates&& newDuplicates)
+    {
+        for (auto& duplicate : newDuplicates)
+        {
+            if (TryMergeToRecordWithTheSameKey(allDuplicates, duplicate) ||
+                TryMergeToRecordWithKeyEqualedToOneOfValues(allDuplicates, duplicate))
+            {
+                continue;
+            }
+
+            AddRecord(allDuplicates, duplicate);
+        }
     }
 }
 
@@ -73,16 +128,16 @@ Duplicates Finder::CombineResults()
 
     while (!tasks_.empty())
     {
-        for (auto iter = tasks_.begin(); iter != tasks_.end();)
+        for (auto task = tasks_.begin(); task != tasks_.end();)
         {
-            if (iter->wait_for(Delay) == std::future_status::ready)
+            if (task->wait_for(Delay) == std::future_status::ready)
             {
-                // TODO: Merge results
-                iter = tasks_.erase(iter);
+                Merge(result, task->get());
+                task = tasks_.erase(task);
             }
             else
             {
-                ++iter;
+                ++task;
             }
         }
     }
@@ -105,7 +160,7 @@ Duplicates Finder::ProcessByOneThread()
 
         const auto [lhsIndex, rhsIndex] = GetIndexes(number, recordCount_);
 
-        if (lhsIndex > rhsIndex)
+        if (lhsIndex + 1 > rhsIndex)
         {
             continue;
         }

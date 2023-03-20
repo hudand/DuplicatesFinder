@@ -42,7 +42,7 @@ namespace
 
 bool FileComparer::AreEqual(const FileInfo& lhs, const FileInfo& rhs)
 {
-    if (lhs.size_ != rhs.size_)
+    if (lhs.size_ != rhs.size_ || lhs.size_ == 0)
     {
         return false;
     }
