@@ -2,6 +2,7 @@
 #include "FileInfo.h"
 #include "FileComparer.h"
 #include <chrono>
+#include <iostream>
 
 using namespace DuplicateFinder;
 using namespace std::chrono_literals;
@@ -22,12 +23,25 @@ namespace
 
         for (const auto& dirEntry : directory_iterator(folderPath))
         {
-            if (dirEntry.is_regular_file())
+            try
             {
-                const auto& path = dirEntry.path();
-                result.push_back(FileInfo{ path, fs::file_size(path) });
+                if (dirEntry.is_regular_file())
+                {
+                    const auto& path = dirEntry.path();
+                    const auto size = fs::file_size(path);
+                    if (size > 0)
+                    {
+                        result.push_back(FileInfo{ path, size });
+                    }
+                }
+            }
+            catch (const std::exception& ex)
+            {
+                std::cout << "Exception: " << ex.what() << std::endl;
             }
         }
+
+        std::cout << result.size() << " files there" << std::endl;
 
         return result;
     }
